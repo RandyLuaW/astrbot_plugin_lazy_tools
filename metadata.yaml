@@ -1,0 +1,14 @@
+name: astrbot_plugin_lazy_tools
+display_name: 按需挂载工具
+desc: "低频工具组默认摘掉，命中触发词才挂上来。管理员私聊一次请求原本挂 74 个工具，光 schema 就吃掉约 13500 token（人格只占 1500），语气被工具说明书的『操作员腔』带跑。本插件把浏览器/手机/工位/空间/人格快照/杂项共 51 个工具按组裁剪，命中触发词或 25 分钟 TTL 内自动挂回，表情包、日记、上下文、shell 等常驻工具不动。框架原生 remove_tool，不改 AstrBot 核心。"
+short_desc: 低频工具按需挂载，省下一半 prompt token
+author: Randy Lua
+repo: https://github.com/RandyLuaW/astrbot_plugin_lazy_tools
+version: 1.1.0
+astrbot_version: ">=4.24.0"
+support_platforms:
+  - aiocqhttp
+tags:
+  - 性能
+  - 工具
+  - 上下文

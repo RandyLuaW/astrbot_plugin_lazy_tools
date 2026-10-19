@@ -1,0 +1,27 @@
+{
+  "enabled": {
+    "type": "bool",
+    "default": true,
+    "description": "启用按需挂载。关闭后所有工具始终挂着。"
+  },
+  "ttl_minutes": {
+    "type": "int",
+    "default": 25,
+    "description": "触发之后这组工具保持多久（分钟）。多轮任务中途不会消失；设太小会出现「点一下那个视频」时工具已经没了。"
+  },
+  "always_on": {
+    "type": "list",
+    "default": [],
+    "description": "永远保持挂载的组名。可选：browser / phone / dev / qzone / persona / misc。留空表示全部按需。"
+  },
+  "extra_keywords": {
+    "type": "list",
+    "default": [],
+    "description": "给内置组追加触发词，每条形如 `group=词1,词2`，例如 `phone=开模拟器,看手机`。组名不认识会被忽略并记警告。"
+  },
+  "debug": {
+    "type": "bool",
+    "default": false,
+    "description": "每轮都打印摘除了哪些工具（默认只在摘除集合变化时打一行）。"
+  }
+}
