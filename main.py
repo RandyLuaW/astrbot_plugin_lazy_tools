@@ -44,6 +44,10 @@ HOOK_PRIORITY = 99
 
 # 工具组定义：match 是工具名**前缀**，keywords 是触发词（大小写不敏感的子串匹配）。
 # 宁可触发词放宽（多挂一组 = 多花几千 token），也不要漏（她当场变傻）。
+#
+# 常驻（不摘）的两类，见 config.always_on 与下面的注释：
+#   phone  —— 交互类工具，触发词往往不在用户话里（"点一下那个"），摘掉当场失能
+#   bili_recall —— B站记忆检索，读操作，留在 bili_write 组里等于把记性锁了
 GROUPS: list[dict[str, Any]] = [
     {
         "name": "browser",
@@ -108,7 +112,6 @@ GROUPS: list[dict[str, Any]] = [
             "bili_block_user",
             "watch_and_share_video_private",
             "bili_parse_video",
-            "bili_recall",
             # watch_video 是"取素材+评分+写记忆"一体：素材被插件自己的 LLM
             # 消化掉，打分发生在没有上下文的地方。她要真看，走 bili_read。
             "watch_video",
