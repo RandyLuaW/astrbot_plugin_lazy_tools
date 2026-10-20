@@ -70,11 +70,10 @@ GROUPS: list[dict[str, Any]] = [
             "重构", "打补丁", "自己的代码", "改个插件", "dev_",
         ],
     },
-    {
-        "name": "qzone",
-        "match": ["search_wyc_tools", "call_wyc_tools", "run_wyc_tool"],
-        "keywords": ["空间", "说说", "qzone", "wyc"],
-    },
+    # qzone 组不摘了：search_wyc_tools 是她查聊天记录（get_group_msg_history /
+    # get_friend_msg_history）的唯一入口，而"要不要查记录"往往不是用户话里带的词
+    # ——触发词匹配不上就整个组不在，她会调一个不存在的工具，然后静默失败。
+    # 三个 schema 大概几百 token，换"想查就能查"，值。
     {
         "name": "persona",
         "match": ["persona_"],

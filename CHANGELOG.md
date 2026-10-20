@@ -2,6 +2,13 @@
 
 所有重要变更记录于此。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循[语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.1.1] - 2026-10-20
+
+### 修复
+
+- **`qzone` 组不再按需摘除**：`search_wyc_tools` 是她查聊天记录（`get_group_msg_history` / `get_friend_msg_history`）的唯一入口，而「要不要翻记录」往往不是用户话里带的词——触发词匹配不上，整组工具就不在，她会去调一个不存在的工具然后静默失败。三个 schema 约几百 token，换「想查就能查」值得。
+- 组数 7 → 6，常驻工具相应多 3 个。
+
 ## [1.1.0] - 2026-10-20
 
 ### 新增
