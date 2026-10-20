@@ -95,27 +95,25 @@ GROUPS: list[dict[str, Any]] = [
         "keywords": ["拉黑", "骚扰", "steam", "游戏价格", "告状", "投诉", "生活状态"],
     },
     {
-        # 永不放行的组：B站插件里几件"不该由她自己决定"的事。
+        # 常驻摘除的组：B站插件里几件"不该由她自己决定"的事。
         # keywords 故意留空，命中不了任何一句话，所以每次请求都会被摘掉。
         #
-        # 注意 bili_action **不在这里**：插件对写操作用的是幂等队列，
-        # key = f"tool_comment:{oid}:{digest(comment_text)}"，同一条评论
-        # 重复提交会被挡住，但"同一个视频再评一条不同的话"是允许的——
-        # 那属于她自己的意愿，不该替她拦。
+        # 名单按**实际注册**的工具核对过（2026-10-20）：B站插件现在只注册 8 个
+        # ——bili_recall / bili_parse_video / search_bilibili / watch_video /
+        # bili_bangumi / bili_action / bili_watch_videos / bili_block_user。
+        # 以前这里列的 post_comment / like_video / coin_video / fav_video /
+        # follow_up / watch_and_share_video_private 是旧的颗粒度工具，早已不注册，
+        # 挂在 match 里只会让人以为"写操作被拦住了"。
+        #
+        # 注意 bili_action **不在这里**：点赞/评论/投币/关注/发动态都收在它一个
+        # 工具里，插件对写操作走幂等队列（key 含内容摘要），同一条评论重复提交会
+        # 被挡住，但"同一个视频再评一句不同的话"是她自己的意愿，不该替她拦。
         "name": "bili_write",
         "match": [
-            "post_comment",
-            "like_video",
-            "coin_video",
-            "fav_video",
-            "follow_up",
-            "bili_block_user",
-            "watch_and_share_video_private",
-            "bili_parse_video",
-            # watch_video 是"取素材+评分+写记忆"一体：素材被插件自己的 LLM
-            # 消化掉，打分发生在没有上下文的地方。她要真看，走 bili_read。
-            "watch_video",
+            "bili_parse_video",     # 取素材+评分+写记忆一体，素材被插件自己的 LLM 消化
+            "watch_video",          # 同上；她要真看，走 bili_read
             "bili_watch_videos",
+            "bili_block_user",
         ],
         "keywords": [],
     },
@@ -236,6 +234,40 @@ class LazyToolsPlugin(Star):
 
     # ---------- 主逻辑 ----------
 
+    def _log_prompt_size(self, req: Any) -> None:
+        """量一次请求的体积构成（debug 开关控制）。
+
+        只看字符数：中文约 1 字 ≈ 1 token，英文/JSON 约 4 字符 ≈ 1 token，
+        所以这个数只用来比较各部分谁占大头，不当精确 token 用。
+        """
+        try:
+            import json as _json
+
+            def _sz(v):
+                if v is None:
+                    return 0
+                if isinstance(v, str):
+                    return len(v)
+                try:
+                    return len(_json.dumps(v, ensure_ascii=False, default=str))
+                except Exception:  # noqa: BLE001
+                    return len(str(v))
+
+            sys_chars = _sz(getattr(req, "system_prompt", "") or "")
+            ctx_chars = _sz(getattr(req, "contexts", None) or [])
+            tools = getattr(getattr(req, "func_tool", None), "tools", []) or []
+            tool_chars = 0
+            for t in tools:
+                tool_chars += _sz(getattr(t, "description", "") or "")
+                tool_chars += _sz(getattr(t, "parameters", {}) or {})
+            logger.info(
+                f"[lazy-tools:size] system={sys_chars}字｜contexts={ctx_chars}字"
+                f"｜tools={len(tools)}个/{tool_chars}字"
+                f"｜合计≈{(sys_chars + ctx_chars + tool_chars) // 2} tokens(粗估)"
+            )
+        except Exception as e:  # noqa: BLE001
+            logger.debug(f"[lazy-tools:size] 量体积失败: {e}")
+
     @filter.on_llm_request(priority=HOOK_PRIORITY)
     async def trim_tools(self, event: AstrMessageEvent, req: Any) -> None:
         if not _flag(self._cfg("enabled")):
@@ -244,6 +276,9 @@ class LazyToolsPlugin(Star):
         tool_set = getattr(req, "func_tool", None)
         if tool_set is None or not hasattr(tool_set, "remove_tool"):
             return
+
+        if _flag(self._cfg("debug")):
+            self._log_prompt_size(req)
 
         present = [
             str(getattr(t, "name", "") or "")

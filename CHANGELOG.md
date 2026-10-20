@@ -2,6 +2,16 @@
 
 所有重要变更记录于此。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循[语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.1.3] - 2026-10-20
+
+### 修复
+
+- **`bili_write` 名单按实际注册工具核对**：原来列的 `post_comment` / `like_video` / `coin_video` / `fav_video` / `follow_up` / `watch_and_share_video_private` 是旧的颗粒度工具，B站插件早已不注册它们，挂在 `match` 里只会让人误以为「写操作被拦住了」。实际写操作全部收在 `bili_action` 一个工具里（不在本组，由插件自身的幂等队列去重）。现在只保留真实存在的 4 个：`bili_parse_video` / `watch_video` / `bili_watch_videos` / `bili_block_user`。
+
+### 新增
+
+- **`debug` 打开时输出 prompt 体积仪表** `[lazy-tools:size]`：分行打印 system prompt / contexts / tools 的字符数与工具个数，附粗略 token 估算，用来定位「到底是哪一块在吃上下文」。只数、不改，关掉 `debug` 即无输出。
+
 ## [1.1.2] - 2026-10-20
 
 ### 修复
